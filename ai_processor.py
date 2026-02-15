@@ -1,8 +1,18 @@
-"""AI evaluation and rewriting placeholder module."""
+"""AI evaluation module."""
 
-# 评分时 Prompt 必须要求：仅返回一个 0–100 的整数，严禁任何解释，以节省 Token。
+# Prompt template for real model integration:
+# You are a financial news scorer. Return ONLY one integer from 0 to 100.
+# No explanation, no extra text, no punctuation.
+SCORING_PROMPT_RULE = (
+    "Return only one integer between 0 and 100. "
+    "Do not output any explanation or extra text."
+)
 
 
 def score_article(title: str, summary: str) -> int:
-    """Score article 0–100. When integrating real model, prompt must require only a single number, no explanation."""
+    """Score article 0-100.
+
+    Replace this stub with a real model call that applies SCORING_PROMPT_RULE.
+    """
     return 0
+

@@ -116,13 +116,14 @@ def run_task() -> None:
     try:
         _run_task_impl()
     except Exception:
-        pass  # 防止网络波动等异常导致后端崩溃，本次跳过
+        pass  # Keep worker alive on transient failures (network/API/parse).
 
 
 def _run_task_impl() -> None:
     db = _load_json(DATABASE_PATH, {"last_fetch_time": None, "articles": []})
     last_fetch = db.get("last_fetch_time")
     articles: list = list(db.get("articles") or [])
+    existing_keys = {(a.get("link") or "").strip() or (a.get("title") or "").strip() for a in articles}
     cutoff = _get_cutoff(last_fetch)
 
     all_items: list[dict] = []
@@ -147,11 +148,16 @@ def _run_task_impl() -> None:
         title = it.get("title", "")
         summary = it.get("summary", "")
         try:
-            score = score_article(title, summary)
+            score = int(score_article(title, summary))
         except Exception:
             score = 0
+        score = max(0, min(100, score))
         if score <= 80:
             continue
+        item_key = (it.get("link") or "").strip() or (it.get("title") or "").strip()
+        if item_key in existing_keys:
+            continue
+        existing_keys.add(item_key)
         articles.append({
             "title": it.get("title", ""),
             "link": it.get("link", ""),
